@@ -3,9 +3,9 @@ pub mod stodo_dir;
 
 use std::fs;
 use std::path::PathBuf;
+use std::collections::HashMap;
 use petgraph::graph::{Graph, NodeIndex};
 use petgraph::visit::{Dfs, NodeIndexable};
-use crate::cli::stodo_args::CliConfig;
 
 pub use {
     stodo::StodoFile,
@@ -13,7 +13,9 @@ pub use {
 };
 
 pub fn build_stodo_trees(src_paths: Vec<String>, recursive: bool) -> Vec<Graph<StodoDir, i32, petgraph::Directed>> {
-    let mut trees: Vec<Graph<StodoDir, i32, petgraph::Directed>> = src_paths.into_iter()
+    let dir_mappings = unique_dir_paths(&src_paths);
+
+    let mut trees: Vec<Graph<StodoDir, i32, petgraph::Directed>> = dir_mappings.into_iter()
         .map(|path| build_stodo_tree(&path, recursive))
         .collect();
 
@@ -33,19 +35,8 @@ pub fn build_stodo_trees(src_paths: Vec<String>, recursive: bool) -> Vec<Graph<S
     trees
 }
 
-fn build_stodo_tree(src_path: &String, recursive: bool) -> Graph<StodoDir, i32, petgraph::Directed> {
-    // get the root stodo directory so it can be the root of the tree
-    let input_path_buff: PathBuf = PathBuf::from(src_path);
-    let mut abs_path_buff: PathBuf = fs::canonicalize(&input_path_buff).unwrap();
-
-    // need to convert src path to a directory path so the StodoDir object can be created
-    if !abs_path_buff.is_dir() {
-        abs_path_buff = abs_path_buff.parent().unwrap().to_path_buf();
-        assert!(abs_path_buff.is_dir(), "this path must be a directory!");
-    }
-
-    // build the stodo tree
-    let root_stodo_dir: StodoDir = StodoDir::from_root(&abs_path_buff).unwrap();
+fn build_stodo_tree(info: &(PathBuf, Vec<String>), recursive: bool) -> Graph<StodoDir, i32, petgraph::Directed> {
+    let root_stodo_dir: StodoDir = StodoDir::from_root(&info.0, &info.1).unwrap();
 
     let mut stodo_tree: Graph<StodoDir, i32> = Graph::new();
     let root: NodeIndex = stodo_tree.add_node(root_stodo_dir);
@@ -75,4 +66,31 @@ fn build_stodo_tree(src_path: &String, recursive: bool) -> Graph<StodoDir, i32, 
     // stodo_tree.c
 
     stodo_tree
+}
+
+/*
+ * Returns a mapping between the paths and their parent directory or itself if it's a directory
+ */
+fn unique_dir_paths(paths: &Vec<String>) -> HashMap<PathBuf, Vec<String>> {
+
+    let mut mappings: HashMap<PathBuf, Vec<String>> = HashMap::new();
+
+    for path in paths.iter() {
+        let path_buff: PathBuf = PathBuf::from(path);
+        let mut abs_path_buff: PathBuf = fs::canonicalize(&path_buff).unwrap();
+
+        if !abs_path_buff.is_dir() {
+            abs_path_buff = abs_path_buff.parent().unwrap().to_path_buf();
+            assert!(abs_path_buff.is_dir(), "this path must be a directory!");
+        }
+
+        if mappings.contains_key(&abs_path_buff) {
+            mappings.get_mut(&abs_path_buff).unwrap().push(String::from(path));
+        }
+        else {
+            mappings.insert(abs_path_buff, vec![String::from(path)]);
+        }
+    }
+
+    return mappings;
 }

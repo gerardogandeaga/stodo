@@ -2,7 +2,7 @@ use std::fmt;
 use std::fmt::Formatter;
 use std::fs;
 use std::fs::{DirEntry, ReadDir};
-use std::path::{Path, PathBuf};
+use std::path::{PathBuf};
 use regex::Regex;
 
 /*
@@ -37,7 +37,7 @@ impl StodoFile {
                 continue
             }
 
-            let todo: Option<StodoFile> = StodoFile::from_file(entry);
+            let todo: Option<StodoFile> = StodoFile::from_file(entry.path());
 
             if todo.is_some() {
                 todos.push(todo.unwrap());
@@ -55,8 +55,8 @@ impl StodoFile {
     /*
     Analyze and return a stodo struct if the input file has one
      */
-    fn from_file(entry: DirEntry) -> Option<StodoFile> {
-        let read_result = fs::read_to_string(entry.path());
+    pub fn from_file(path: PathBuf) -> Option<StodoFile> {
+        let read_result = fs::read_to_string(&path);
         if read_result.is_err() {
             return None;
         }
@@ -81,7 +81,7 @@ impl StodoFile {
         }
         else {
             Some(StodoFile {
-                path: PathBuf::from(&entry.path()),
+                path: PathBuf::from(&path),
                 str_todos: str_todos
             })
         }

@@ -1,4 +1,4 @@
-use clap::{Arg, ArgMatches, Command, Values};
+use clap::{Arg, ArgMatches, Command};
 
 pub fn clap_args() -> ArgMatches {
     // TODO: Add a max recursion depth
@@ -9,8 +9,6 @@ pub fn clap_args() -> ArgMatches {
         .arg(Arg::new("paths")
             .index(1)
             .multiple_values(true)
-            // .short('p')
-            // .long("paths")
             .value_name("PATH")
             .default_value(".")
             .help("Source paths"))
@@ -19,5 +17,9 @@ pub fn clap_args() -> ArgMatches {
             .short('r')
             .long("recursive")
             .help("Recursively search directories for TODOs"))
+        .arg(Arg::new("gitignore")
+            .multiple_values(false)
+            .long("gitignore")
+            .help("Filter files found in .gitignore files"))
         .get_matches()
 }

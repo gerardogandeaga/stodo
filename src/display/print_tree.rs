@@ -1,42 +1,24 @@
-use std::io::Write;
-use std::path::PathBuf;
-use petgraph::data::DataMap;
-use ptree;
-use ptree::{Color, print_tree, Style};
-use petgraph::graph::{Graph, NodeIndex};
-use petgraph::visit::{Dfs, IntoEdges, NodeIndexable};
+/*
+ * TODO: create a custom tree printer
+ */
 
-use crate::stodo_items::{StodoFile, StodoDir};
+use std::path::PathBuf;
+use ptree;
+use petgraph::graph::{Graph, NodeIndex};
+use petgraph::visit::{Dfs, NodeIndexable};
+
+use crate::stodo_tree::{StodoDir};
 
 pub fn display_stodo_tree(stodo_trees: &Vec<Graph<StodoDir, i32>>) {
     println!("TODOs");
 
-    // // tree config
-    // let config = {
-    //     let mut config = ptree::PrintConfig::from_env();
-    //     config.branch = Style {
-    //         foreground: Some(Color::White),
-    //         // background: Some(Color::Yellow),
-    //         dimmed: false,
-    //         ..Style::default()
-    //     };
-    //     config.leaf = Style {
-    //         // bold: true,
-    //         // italic: true,
-    //         // foreground: Some(Color::Cyan),
-    //         ..Style::default()
-    //     };
-    //
-    //     config.characters = ptree::print_config::UTF_CHARS.into();
-    //     config.indent = 4;
-    //     config
-    // };
+    // ptree::print_config::ASCII_CHARS_PLUS
 
     // build and print the todos in a tree structure
     let mut stodo_trees = build_display_tree(stodo_trees);
     for stodo_tree in stodo_trees.iter_mut() {
-        ptree::print_tree(&stodo_tree.build());
-        // ptree::print_tree_with(&stodo_tree.build(), &config);
+        let displayable = &stodo_tree.build();
+        ptree::print_tree(displayable).ok();
     }
 }
 
@@ -49,8 +31,8 @@ fn build_display_tree(stodo_trees: &Vec<Graph<StodoDir, i32>>) -> Vec<ptree::Tre
 
         let mut display_tree = ptree::TreeBuilder::new(
             basename_str(tree.node_weight(root).unwrap().in_path()));
+        build_display_branch(tree.node_weight(root).unwrap(), &mut display_tree);
         dfs.next(&tree);
-
 
         let mut level_stack: Vec<usize> = vec![];
         while let Some(node) = dfs.next(&tree) {
@@ -90,7 +72,7 @@ fn build_display_tree(stodo_trees: &Vec<Graph<StodoDir, i32>>) -> Vec<ptree::Tre
 
 /// add the files with todos and their stodo strings
 fn build_display_branch(todo_dir: &StodoDir, tree: &mut ptree::TreeBuilder) {
-    for stodo in todo_dir.stodos.iter() {
+    for stodo in todo_dir.stodos().iter() {
         // make the filename a parent
         tree.begin_child(basename_str(&stodo.path));
         for todo_str in stodo.str_todos.iter() {
