@@ -2,6 +2,7 @@
  * TODO: create a custom tree printer
  */
 
+use super::builder;
 use std::path::PathBuf;
 use ptree;
 use petgraph::graph::{Graph, NodeIndex};
@@ -11,8 +12,6 @@ use crate::stodo_tree::{StodoDir};
 
 pub fn display_stodo_tree(stodo_trees: &Vec<Graph<StodoDir, i32>>) {
     println!("TODOs");
-
-    // ptree::print_config::ASCII_CHARS_PLUS
 
     // build and print the todos in a tree structure
     let mut stodo_trees = build_display_tree(stodo_trees);
