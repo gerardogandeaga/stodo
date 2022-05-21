@@ -7,15 +7,18 @@ use std::collections::HashMap;
 use petgraph::graph::{Graph, NodeIndex};
 use petgraph::visit::{Dfs, NodeIndexable};
 
+pub type StodoTree = Graph<StodoDir, i32, petgraph::Directed>;
+pub type StodoForest = Vec<StodoTree>;
+
 pub use {
     stodo::StodoFile,
     stodo_dir::StodoDir
 };
 
-pub fn build_stodo_trees(src_paths: Vec<String>, recursive: bool) -> Vec<Graph<StodoDir, i32, petgraph::Directed>> {
+pub fn build_stodo_trees(src_paths: Vec<String>, recursive: bool) -> StodoForest {
     let dir_mappings = unique_dir_paths(&src_paths);
 
-    let mut trees: Vec<Graph<StodoDir, i32, petgraph::Directed>> = dir_mappings.into_iter()
+    let mut trees: StodoForest = dir_mappings.into_iter()
         .map(|path| build_stodo_tree(&path, recursive))
         .collect();
 
@@ -35,7 +38,7 @@ pub fn build_stodo_trees(src_paths: Vec<String>, recursive: bool) -> Vec<Graph<S
     trees
 }
 
-fn build_stodo_tree(info: &(PathBuf, Vec<String>), recursive: bool) -> Graph<StodoDir, i32, petgraph::Directed> {
+fn build_stodo_tree(info: &(PathBuf, Vec<String>), recursive: bool) -> StodoTree {
     let root_stodo_dir: StodoDir = StodoDir::from_root(&info.0, &info.1).unwrap();
 
     let mut stodo_tree: Graph<StodoDir, i32> = Graph::new();
