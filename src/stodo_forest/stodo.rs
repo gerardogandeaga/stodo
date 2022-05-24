@@ -4,6 +4,7 @@ use std::fs;
 use std::fs::{DirEntry, ReadDir};
 use std::path::{PathBuf};
 use regex::Regex;
+use lazy_static::lazy_static;
 
 /*
 A Stodo represents a file with the stodo strings
@@ -15,10 +16,7 @@ pub struct StodoFile {
 }
 
 #[derive(Debug)]
-pub struct StodoEntry {
-    stodo: String,
-    line: u32,
-}
+pub struct StodoEntry(String, u32);
 
 impl fmt::Display for StodoFile {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
@@ -33,28 +31,24 @@ impl StodoFile {
      */
     pub fn from_dir(dir_path: &PathBuf) -> Option<Vec<Self>> {
         let paths: ReadDir = fs::read_dir(dir_path).unwrap();
-        let mut todos: Vec<Self> = vec![];
 
-        for path in paths {
-            let entry: DirEntry = path.unwrap();
+        let stodos: Vec<Self> = paths.filter_map(|entry| {
+            let path: PathBuf = entry.unwrap().path();
 
-            // skip if the entry is not a file
-            if !entry.path().is_file() {
-                continue
+            if path.is_file() {
+                Self::from_file(path)
             }
-
-            let todo: Option<Self> = Self::from_file(entry.path());
-
-            if todo.is_some() {
-                todos.push(todo.unwrap());
+            else {
+                None
             }
-        }
+        })
+        .collect();
 
-        if todos.is_empty() {
+        if stodos.is_empty() {
             None
         }
         else {
-            Some(todos)
+            Some(stodos)
         }
     }
 
@@ -62,6 +56,11 @@ impl StodoFile {
     Analyze and return a stodo struct if the input file has one
      */
     pub fn from_file(path: PathBuf) -> Option<Self> {
+        lazy_static!{
+            // TODO: optimize the regex? https://github.com/rust-lang/regex/blob/master/PERFORMANCE.md
+            static ref STODO_REGEX: Regex = Regex::new(r"^([^a-zA-Z0-9]+|\s*)\b[Tt][Oo][Dd][Oo]\b.*").unwrap();
+        }
+
         let read_result = fs::read_to_string(&path);
         if read_result.is_err() {
             return None;
@@ -71,17 +70,12 @@ impl StodoFile {
         let mut str_todos: Vec<StodoEntry> = vec![];
 
         // pattern match to find the todos in a file
-        let re = Regex::new(r"^([^a-zA-Z0-9]+|\s*)\b[Tt][Oo][Dd][Oo]\b.*").unwrap();
-        let mut line_i: u32 = 1;
-        for line in contents.split("\n") {
-            if re.is_match(line) {
-                str_todos.push(StodoEntry {
-                    stodo: String::from(line.trim()),
-                    line: line_i,
-                });
+        contents.split("\n").enumerate().for_each(|(i, line)| {
+            // use Regex::find?
+            if STODO_REGEX.is_match(line) {
+                str_todos.push(StodoEntry(String::from(line.trim()), i as u32 + 1));
             }
-            line_i += 1;
-        }
+        });
 
         if str_todos.is_empty() {
             None
@@ -107,10 +101,10 @@ impl StodoFile {
 impl StodoEntry {
 
     pub fn stodo_string(&self) -> String {
-        String::from(&self.stodo)
+        String::from(&self.0)
     }
 
     pub fn line_number(&self) -> u32 {
-        self.line
+        self.1
     }
 }

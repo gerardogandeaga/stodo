@@ -2,7 +2,7 @@ use std::fmt;
 use std::fmt::{Formatter};
 use std::path::{PathBuf};
 use std::fs;
-use crate::stodo_tree::StodoFile;
+use crate::stodo_forest::StodoFile;
 
 /*
 Represents a directory with files that have valid todo strings in them
@@ -107,7 +107,7 @@ impl StodoDir {
      */
     pub fn populate_stodos(&mut self) {
         if self.search_all {
-            let stodos = StodoFile::from_dir(&self.abs_path);
+            let stodos: Option<Vec<StodoFile>> = StodoFile::from_dir(&self.abs_path);
 
             if stodos.is_some() {
                 self.stodos.extend(stodos.unwrap());

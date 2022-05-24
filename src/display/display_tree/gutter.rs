@@ -11,11 +11,9 @@ impl Gutter {
     }
 
     pub fn compile(&self, line_tokens: &Vec<LineToken>) -> String {
-
         let mut gutter_string = String::with_capacity(GUTTER_STRING_INIT_CAP);
-
         let width = self.gutter_width(line_tokens) as usize;
-        
+
         line_tokens.iter()
             .for_each(|x| 
                 Gutter::append_to_gutter_string(

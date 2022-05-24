@@ -16,24 +16,28 @@ pub use {
 };
 
 pub fn build_stodo_trees(src_paths: Vec<String>, recursive: bool) -> StodoForest {
+    let t = std::time::Instant::now();
     let dir_mappings = unique_dir_paths(&src_paths);
-
     let mut trees: StodoForest = dir_mappings.into_iter()
         .map(|path| build_stodo_tree(&path, recursive))
         .collect();
+    println!("build dir tree: {}", t.elapsed().as_secs_f32());
 
     // populate the directories with the stodos
     // TODO: parallelize?
-    for tree in trees.iter_mut() {
-        let root: NodeIndex = tree.from_index(0);
-        let mut dfs = Dfs::new(&*tree, root);
+    let T = std::time::Instant::now();
+    trees.iter_mut()
+        .for_each(|tree| {
+            let root: NodeIndex = tree.from_index(0);
+            let mut dfs = Dfs::new(&*tree, root);
 
-        while let Some(node) = dfs.next(&*tree) {
-            tree.node_weight_mut(node)
-                .unwrap()
-                .populate_stodos();
-        }
-    }
+            while let Some(node) = dfs.next(&*tree) {
+                tree.node_weight_mut(node)
+                    .unwrap()
+                    .populate_stodos();
+            }
+        });
+    println!("populate directories: {}", T.elapsed().as_secs_f32());
 
     trees
 }

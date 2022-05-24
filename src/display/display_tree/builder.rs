@@ -1,7 +1,7 @@
 use super::gutter::Gutter;
 use super::forest::Forest;
 
-use crate::stodo_tree::{StodoForest};
+use crate::stodo_forest::{StodoForest};
 
 pub enum LineToken {
     Dir,

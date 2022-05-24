@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use termtree;
 use petgraph::graph::{NodeIndex};
 use petgraph::visit::{Dfs, NodeIndexable};
-use crate::stodo_tree::{stodo_dir::StodoDir, StodoForest};
+use crate::stodo_forest::{stodo_dir::StodoDir, StodoForest};
 
 use super::builder::LineToken;
 
