@@ -1,7 +1,7 @@
 use std::fmt;
 use std::fmt::Formatter;
 use std::fs;
-use std::fs::{DirEntry, ReadDir};
+use std::fs::{ReadDir};
 use std::path::{PathBuf};
 use regex::Regex;
 use lazy_static::lazy_static;
@@ -63,8 +63,11 @@ impl StodoFile {
 
         let read_result = fs::read_to_string(&path);
         if read_result.is_err() {
+            // println!("Error reading -> {}", path.display());
             return None;
         }
+
+        // /Users/gerardogandeaga/Dev/cli/stodo/target/debug/.fingerprint/serde_json-47ac3846cebe7691
 
         let contents = read_result.unwrap();
         let mut str_todos: Vec<StodoEntry> = vec![];

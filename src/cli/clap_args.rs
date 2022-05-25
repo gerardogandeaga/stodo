@@ -1,7 +1,7 @@
 use clap::{Arg, ArgMatches, Command};
 
 pub fn clap_args() -> ArgMatches {
-    // TODO: Add a max recursion depth
+    // TODO: Add a max recursion depth, use the .gitignore (deafult = true), view hidden files (default = false)
     Command::new("stodo")
         .version("0.0.0")
         .author("gerardo gandeaga")

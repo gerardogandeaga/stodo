@@ -75,7 +75,7 @@ impl Forest {
                     tree_stack.last_mut().unwrap().push(sub_tree);
                     n -= 1;
                 }
-    
+
                 if !level_stack.is_empty() {
                     let i: usize = level_stack.len() - 1;
                     if level_stack[i] > 0 {
@@ -83,11 +83,14 @@ impl Forest {
                     }
                 }
     
-                // make a directory branch
                 let mut dir_branch: termtree::Tree<String> = termtree::Tree::new(basename_str(stodo_dir.in_path()));
                 self.add_line_token(LineToken::Dir);
-                self.add_file_leaf(stodo_dir, &mut dir_branch);
-    
+
+                // make a directory branch
+                if !stodo_dir.is_empty() {
+                    self.add_file_leaf(stodo_dir, &mut dir_branch);
+                }
+
                 if n_edges > 0 {
                     level_stack.push(n_edges);
                     tree_stack.push(dir_branch);

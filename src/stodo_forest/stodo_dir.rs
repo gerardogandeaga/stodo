@@ -6,6 +6,7 @@ use crate::stodo_forest::StodoFile;
 
 /*
 Represents a directory with files that have valid todo strings in them
+TODO: only keep the relative path of the directories below
  */
 #[derive(Debug)]
 pub struct StodoDir {
@@ -15,6 +16,7 @@ pub struct StodoDir {
     specific_stodo_files: Vec<PathBuf>,
     search_all: bool,        // whether or not we want to search the entire directory
     depth: u32,
+    valid: bool,
 }
 
 impl fmt::Display for StodoDir {
@@ -36,7 +38,8 @@ impl StodoDir {
             stodos: vec![],
             specific_stodo_files: vec![],
             search_all: false,
-            depth: 0
+            depth: 0,
+            valid: true,
         }
     }
 
@@ -123,6 +126,8 @@ impl StodoDir {
                 });
         }
         // TODO: what should happen if there are no stodos in this directory?
+        if self.stodos().is_empty() {
+        }
     }
 
     fn compress() {
@@ -160,5 +165,17 @@ impl StodoDir {
 
     pub fn depth(&self) -> u32 {
         self.depth
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.stodos.is_empty()
+    }
+
+    pub fn invalidate(&mut self) {
+        self.valid = false;
+    }
+
+    pub fn is_invalid(&self) -> bool {
+        !self.valid
     }
 }
