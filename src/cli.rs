@@ -41,7 +41,8 @@ pub fn run<W>(writer: &mut W, writable: String) -> Result<()>
         writer, 
         ResetColor,
         terminal::Clear(terminal::ClearType::All),
-        cursor::Show,
+        // cursor::Show,
+        cursor::Hide,
         cursor::EnableBlinking,
         cursor::MoveTo(0,0)
     )?;
@@ -116,18 +117,20 @@ fn render<W: Write>(w: &mut W, term_data: &TermData) -> Result<()> {
         .enumerate()
         .for_each(|(i, line)| {
             if i == y as usize {
+                let s = format!(">{}", line);
                 queue!(
                     w, 
-                    SetForegroundColor(Color::Yellow), 
-                    style::Print(line.as_str().bold()), 
-                    cursor::MoveToNextLine(1), 
+                    // SetForegroundColor(Color::Yellow), 
+                    style::Print(s.as_str().bold()),
+                    cursor::MoveToNextLine(1),
                     ResetColor
                 ).ok();
             }
             else {
+                let s = format!(" {}", line);
                 queue!(
                     w, 
-                    style::Print(line.as_str()), 
+                    style::Print(s.as_str()), 
                     cursor::MoveToNextLine(1)
                 ).ok();
             }

@@ -1,5 +1,6 @@
-pub mod stodo;
-pub mod stodo_dir;
+pub mod file;
+pub mod dir;
+pub mod entry;
 
 use std::fs;
 use std::path::PathBuf;
@@ -7,16 +8,18 @@ use std::collections::HashMap;
 use petgraph::EdgeDirection;
 use petgraph::graph::{Graph, NodeIndex};
 use petgraph::visit::{NodeIndexable, DfsPostOrder};
+use ignore::WalkBuilder;
 
 pub use {
-    stodo::StodoFile,
-    stodo_dir::StodoDir
+    file::StodoFile,
+    dir::StodoDir,
+    entry::StodoEntry,
 };
 
 pub type StodoTree = Graph<StodoDir, i32, petgraph::Directed>;
 pub type StodoForest = Vec<StodoTree>;
 
-pub fn build_stodo_trees(src_paths: Vec<String>, recursive: bool) -> StodoForest {
+pub fn build_stodo_forest(src_paths: Vec<String>, recursive: bool) -> StodoForest {
     // let t = std::time::Instant::now();
     let dir_mappings = unique_dir_paths(&src_paths);
     let mut trees: StodoForest = dir_mappings.into_iter()

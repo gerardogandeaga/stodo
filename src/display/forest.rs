@@ -6,9 +6,10 @@ use std::path::PathBuf;
 use termtree;
 use petgraph::graph::{NodeIndex};
 use petgraph::visit::{Dfs, NodeIndexable};
-use crate::stodo_forest::{stodo_dir::StodoDir, StodoForest};
+use crate::core::{dir::StodoDir, StodoForest};
 
 use super::builder::LineToken;
+use super::displayable::Displayable;
 
 pub struct Forest {
     display_trees: Vec<termtree::Tree<String>>,
@@ -54,9 +55,8 @@ impl Forest {
             let root: NodeIndex = tree.from_index(0);
             let mut dfs = Dfs::new(&tree, root);
             
-            let mut tt_root = termtree::Tree::new(
-                basename_str(tree.node_weight(root).unwrap().in_path())
-            );
+            let mut tt_root = termtree::Tree::new(tree.node_weight(root).unwrap().to_displayable());
+            
             self.add_line_token(LineToken::Dir);
             self.add_file_leaf(tree.node_weight(root).unwrap(), &mut tt_root);
             
@@ -83,7 +83,7 @@ impl Forest {
                     }
                 }
     
-                let mut dir_branch: termtree::Tree<String> = termtree::Tree::new(basename_str(stodo_dir.in_path()));
+                let mut dir_branch: termtree::Tree<String> = termtree::Tree::new(stodo_dir.to_displayable());
                 self.add_line_token(LineToken::Dir);
 
                 // make a directory branch
@@ -122,12 +122,12 @@ impl Forest {
             self.add_line_token(LineToken::File);
 
             // make the filename a parent
-            let f_branch = termtree::Tree::new(basename_str(stodo.file_path()))
+            let f_branch = termtree::Tree::new(stodo.to_displayable())
                 .with_leaves(stodo.stodo_entries().iter()
                     .map(|entry| {
                         self.add_line_token(LineToken::Stodo(entry.line_number()));
                         // dt_builder.add_stodo(entry);
-                        termtree::Tree::new(entry.stodo_string())
+                        termtree::Tree::new(entry.to_displayable())
                     })
                 );
             tree.push(f_branch);
@@ -141,16 +141,4 @@ impl Forest {
     pub fn line_tokens(&self) -> &Vec<LineToken> {
         &self.tokens
     }
-}
-
-
-fn basename_str(path: &PathBuf) -> String {
-
-    let mut basename = String::from(path.file_name().unwrap_or_default().to_str().unwrap());
-
-    if path.is_dir() {
-        basename.push('/');
-    }
-
-    basename
 }

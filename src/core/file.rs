@@ -1,10 +1,10 @@
-use std::fmt;
-use std::fmt::Formatter;
 use std::fs;
 use std::fs::{ReadDir};
 use std::path::{PathBuf};
 use regex::Regex;
 use lazy_static::lazy_static;
+use super::entry::StodoEntry;
+use ansi_term::Colour;
 
 /*
 A Stodo represents a file with the stodo strings
@@ -15,20 +15,9 @@ pub struct StodoFile {
     stodo_entries: Vec<StodoEntry>, // all the detected TODOs in the file
 }
 
-#[derive(Debug)]
-pub struct StodoEntry(String, u32);
-
-impl fmt::Display for StodoFile {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "n: {}, p: {}", self.stodo_entries.len(), self.path.display().to_string())
-    }
-}
-
 impl StodoFile {
 
-    /*
-    Returns a vector of stodo objects for the current directory
-     */
+    /// Returns a vector of stodo objects for the current directory
     pub fn from_dir(dir_path: &PathBuf) -> Option<Vec<Self>> {
         let paths: ReadDir = fs::read_dir(dir_path).unwrap();
 
@@ -52,9 +41,7 @@ impl StodoFile {
         }
     }
 
-    /*
-    Analyze and return a stodo struct if the input file has one
-     */
+    /// Analyze and return a stodo struct if the input file has one
     pub fn from_file(path: PathBuf) -> Option<Self> {
         lazy_static!{
             // TODO: optimize the regex? https://github.com/rust-lang/regex/blob/master/PERFORMANCE.md
@@ -63,11 +50,8 @@ impl StodoFile {
 
         let read_result = fs::read_to_string(&path);
         if read_result.is_err() {
-            // println!("Error reading -> {}", path.display());
             return None;
         }
-
-        // /Users/gerardogandeaga/Dev/cli/stodo/target/debug/.fingerprint/serde_json-47ac3846cebe7691
 
         let contents = read_result.unwrap();
         let mut str_todos: Vec<StodoEntry> = vec![];
@@ -76,7 +60,7 @@ impl StodoFile {
         contents.split("\n").enumerate().for_each(|(i, line)| {
             // use Regex::find?
             if STODO_REGEX.is_match(line) {
-                str_todos.push(StodoEntry(String::from(line.trim()), i as u32 + 1));
+                str_todos.push(StodoEntry::new(String::from(line.trim()), i as u32 + 1));
             }
         });
 
@@ -90,24 +74,14 @@ impl StodoFile {
             })
         }
     }
+}
 
+impl StodoFile {
     pub fn file_path(&self) -> &PathBuf {
         &self.path
     }
 
     pub fn stodo_entries(&self) -> &Vec<StodoEntry> {
         &self.stodo_entries
-    }
-
-}
-
-impl StodoEntry {
-
-    pub fn stodo_string(&self) -> String {
-        String::from(&self.0)
-    }
-
-    pub fn line_number(&self) -> u32 {
-        self.1
     }
 }

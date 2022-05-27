@@ -1,7 +1,8 @@
+// TODO: refactor this file into display.rs
 use super::gutter::Gutter;
 use super::forest::Forest;
 
-use crate::stodo_forest::{StodoForest};
+use crate::core::{StodoForest};
 
 pub enum LineToken {
     Dir,

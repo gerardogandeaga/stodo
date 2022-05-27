@@ -1,8 +1,7 @@
-use std::fmt;
-use std::fmt::{Formatter};
 use std::path::{PathBuf};
 use std::fs;
-use crate::stodo_forest::StodoFile;
+use ansi_term::Colour;
+use super::StodoFile;
 
 /*
 Represents a directory with files that have valid todo strings in them
@@ -16,16 +15,6 @@ pub struct StodoDir {
     specific_stodo_files: Vec<PathBuf>,
     search_all: bool,        // whether or not we want to search the entire directory
     depth: u32,
-    valid: bool,
-}
-
-impl fmt::Display for StodoDir {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "d: {}, n: {}, p: {}", 
-            self.depth, 
-            self.stodos().len(),
-            self.abs_path.display().to_string())
-    }
 }
 
 #[allow(dead_code)]
@@ -39,7 +28,6 @@ impl StodoDir {
             specific_stodo_files: vec![],
             search_all: false,
             depth: 0,
-            valid: true,
         }
     }
 
@@ -83,10 +71,11 @@ impl StodoDir {
 
         Some(stodo_dir)
     }
+}
 
-    /*
-     Returns a list of sub stodo directories
-     */
+impl StodoDir {
+
+    /// Returns a list of sub stodo directories
     pub fn sub_dirs(&self) -> Vec<Self> {
         let dir_path = PathBuf::from(&self.abs_path);
         let dir_entries = fs::read_dir(&dir_path).unwrap();
@@ -102,12 +91,10 @@ impl StodoDir {
         sub_dirs
     }
 
-    /*
-     Find and add the stodos for the directory
-     TODO:
-        - Parallelize
-        - Compress nodes that do not have stodos (middle nodes)
-     */
+    /// Find and add the stodos for the directory
+    /// TODO:
+    ///    - Parallelize
+    ///    - Compress nodes that do not have stodos (middle nodes)
     pub fn populate_stodos(&mut self) {
         if self.search_all {
             let stodos: Option<Vec<StodoFile>> = StodoFile::from_dir(&self.abs_path);
@@ -128,10 +115,6 @@ impl StodoDir {
         // TODO: what should happen if there are no stodos in this directory?
         if self.stodos().is_empty() {
         }
-    }
-
-    fn compress() {
-        // TODO(implement)
     }
 
     fn with_path(mut self, path: &PathBuf) -> Self {
@@ -169,13 +152,5 @@ impl StodoDir {
 
     pub fn is_empty(&self) -> bool {
         self.stodos.is_empty()
-    }
-
-    pub fn invalidate(&mut self) {
-        self.valid = false;
-    }
-
-    pub fn is_invalid(&self) -> bool {
-        !self.valid
     }
 }
