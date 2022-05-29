@@ -74,7 +74,9 @@ STodo is a nifty tool that analyzes files for `TODO`
 
 
 <!-- GETTING STARTED -->
-<!-- ## Getting Started -->
+## Getting Started
+
+Well... this README is still a work in progress just like the rest of the project. Until I make a fully usable and tested version you may clone the repo and build the project from source to try it out. 
 
 <!-- Saving this for later -->
 
