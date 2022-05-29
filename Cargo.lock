@@ -369,6 +369,7 @@ dependencies = [
  "regex",
  "termcolor",
  "termtree",
+ "walkdir",
 ]
 
 [[package]]

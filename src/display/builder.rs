@@ -5,9 +5,11 @@ use super::forest::Forest;
 use crate::core::{StodoForest};
 
 pub enum LineToken {
+    RootDir,
     Dir,
     File,
-    Stodo(u32)
+    Stodo(u32),
+    Empty,
 }
 
 pub struct DisplayForestBuilder {
@@ -25,7 +27,7 @@ impl DisplayForestBuilder {
     }
 
     pub fn compile(stodo_forest: &StodoForest) -> String {
-        let mut display_forest_builder = Self::new();
+        let mut display_forest_builder: DisplayForestBuilder = Self::new();
 
         display_forest_builder.forest.compile(stodo_forest);
 
@@ -40,7 +42,6 @@ impl DisplayForestBuilder {
                 display_str.push_str(f);
                 display_str.push('\n');
             });
-
 
         display_str.trim_end().to_string()
     }

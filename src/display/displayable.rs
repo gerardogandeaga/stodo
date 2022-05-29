@@ -19,9 +19,19 @@ impl Displayable for StodoDir {
 
 impl Displayable for StodoFile {
     fn to_displayable(&self) -> String {
-        format!("{}", Colour::White
-            .paint(basename(self.file_path()))
-            .to_string())
+
+        if !self.is_empty() {
+            format!("{}", Colour::White
+                .paint(basename(self.file_path()))
+                .to_string())
+        }
+        else {
+            format!("{}", Colour::Red
+                .paint(
+                    format!("{}: nothing found.", basename(self.file_path()))
+                )
+                .to_string())
+        }
     }
 }
 
@@ -33,24 +43,6 @@ impl Displayable for StodoEntry {
             .to_string())
     }
 }
-
-// impl fmt::Display for StodoDir {
-//     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-//         write!(f, "{}", basename(self.in_path()))
-//     }
-// }
-
-// impl fmt::Display for StodoFile {
-//     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-//         write!(f, "{}", basename(self.file_path()))
-//     }
-// }
-
-// impl fmt::Display for StodoEntry {
-//     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-//         write!(f, "{}", self.stodo_string())
-//     }
-// }
 
 fn basename(path: &PathBuf) -> String {
 

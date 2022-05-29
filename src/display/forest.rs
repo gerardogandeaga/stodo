@@ -1,8 +1,3 @@
-/*
- * TODO: create a custom tree printer
- */
-
-use std::path::PathBuf;
 use termtree;
 use petgraph::graph::{NodeIndex};
 use petgraph::visit::{Dfs, NodeIndexable};
@@ -32,7 +27,13 @@ impl Forest {
         self.build_forest(stodo_trees);
 
         let mut s = String::from("");
-        self.display_trees.iter().for_each(|t| s.push_str(t.to_string().as_str()));
+        let n_trees: usize = self.display_trees.len();
+        self.display_trees.iter().enumerate().for_each(|(i, t)| {
+            s.push_str(t.to_string().as_str());
+            if i < n_trees - 1 {
+                s.push('\n');
+            }
+        });
         self.compiled_str = Some(s);
     }
 
@@ -51,39 +52,39 @@ impl Forest {
     {
         let mut display_trees: Vec<termtree::Tree<String>> = vec![];
     
-        for tree in stodo_trees.iter() {
+        let n_trees: usize = stodo_trees.len();
+        for (i, tree) in stodo_trees.iter().enumerate() {
             let root: NodeIndex = tree.from_index(0);
             let mut dfs = Dfs::new(&tree, root);
             
             let mut tt_root = termtree::Tree::new(tree.node_weight(root).unwrap().to_displayable());
-            
-            self.add_line_token(LineToken::Dir);
+            self.add_line_token(LineToken::RootDir);
             self.add_file_leaf(tree.node_weight(root).unwrap(), &mut tt_root);
             
             dfs.next(&tree);
     
-            let mut level_stack: Vec<usize> = vec![];
+            let mut depth_stack: Vec<usize> = vec![];
             let mut tree_stack: Vec<termtree::Tree<String>> = vec![tt_root];
             while let Some(node) = dfs.next(&tree) {
                 let stodo_dir: &StodoDir = tree.node_weight(node).unwrap();
                 let n_edges: usize = tree.edges(node).count();
-                let mut n: usize = level_stack.len();
+                let mut n: usize = depth_stack.len();
     
-                while n > 0 && level_stack[n-1] == 0 {
-                    level_stack.pop();
-                    let sub_tree: termtree::Tree<String> = tree_stack.pop().unwrap();
+                while n > 0 && depth_stack[n-1] == 0 {
+                    depth_stack.pop();
+                    let sub_tree = tree_stack.pop().unwrap();
                     tree_stack.last_mut().unwrap().push(sub_tree);
                     n -= 1;
                 }
 
-                if !level_stack.is_empty() {
-                    let i: usize = level_stack.len() - 1;
-                    if level_stack[i] > 0 {
-                        level_stack[i] -= 1;
+                if !depth_stack.is_empty() {
+                    let i: usize = depth_stack.len() - 1;
+                    if depth_stack[i] > 0 {
+                        depth_stack[i] -= 1;
                     }
                 }
     
-                let mut dir_branch: termtree::Tree<String> = termtree::Tree::new(stodo_dir.to_displayable());
+                let mut dir_branch = termtree::Tree::new(stodo_dir.to_displayable());
                 self.add_line_token(LineToken::Dir);
 
                 // make a directory branch
@@ -92,7 +93,7 @@ impl Forest {
                 }
 
                 if n_edges > 0 {
-                    level_stack.push(n_edges);
+                    depth_stack.push(n_edges);
                     tree_stack.push(dir_branch);
                 }
                 else {
@@ -101,12 +102,17 @@ impl Forest {
             }
     
             while tree_stack.len() > 1 {
-                let sub_tree: termtree::Tree<String> = tree_stack.pop().unwrap();
+                let sub_tree = tree_stack.pop().unwrap();
                 tree_stack.last_mut().unwrap().push(sub_tree);
             }
     
             assert!(tree_stack.len() == 1, "This last item on the termtree stack must be the root!");
             display_trees.push(tree_stack.pop().unwrap());
+
+            // add empty line token for the extra spacing
+            if i < n_trees - 1{
+                self.add_line_token(LineToken::Empty);
+            }
         }
     
         display_trees

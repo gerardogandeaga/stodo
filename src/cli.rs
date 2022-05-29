@@ -1,5 +1,4 @@
 #[allow(dead_code)]
-
 pub mod clap_args;
 pub mod stodo_args;
 pub mod term;
@@ -26,6 +25,8 @@ use crossterm::{
 };
 
 use self::term::TermData;
+
+/// TODO: Change the cursor movement to only between stodo entries
 
 #[allow(dead_code)]
 pub fn run<W>(writer: &mut W, writable: String) -> Result<()> 

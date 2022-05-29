@@ -11,8 +11,8 @@ impl Gutter {
     }
 
     pub fn compile(&self, line_tokens: &Vec<LineToken>) -> String {
-        let mut gutter_string = String::with_capacity(GUTTER_STRING_INIT_CAP);
-        let width = self.gutter_width(line_tokens) as usize;
+        let mut gutter_string: String = String::with_capacity(GUTTER_STRING_INIT_CAP);
+        let width: usize = self.gutter_width(line_tokens) as usize;
 
         line_tokens.iter()
             .for_each(|x| 
@@ -36,14 +36,13 @@ impl Gutter {
                 format!("{: >width$}", s, width = gutter_width)
                     .as_str()
             );
-            gutter_string.push_str("| ") ; // │
+            gutter_string.push_str("│ ") ; // │
             gutter_string.push('\n');
         };
 
         match line_token {
-            LineToken::Stodo(line) => {
-                gutter_append(line.to_string().as_str())
-            }
+            LineToken::Stodo(line) => gutter_append(line.to_string().as_str()),
+            LineToken::RootDir => gutter_append("─"),
             _ => {
                 gutter_append("");
             }
