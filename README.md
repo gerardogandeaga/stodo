@@ -10,7 +10,7 @@
 <h3 align="center">STodo</h3>
 
   <p align="center">
-    STodo, or "something to do", is a CLI tool built purely in Rust to quickly view your project TODOs and FIXMEs interactively from the terminal!
+    STodo, or "something to do", is a CLI tool built purely in Rust to quickly interactively view your project TODOs and FIXMEs from the terminal!
     <br />
     <!-- <a href="https://github.com/github_username/repo_name"><strong>Explore the docs »</strong></a>
     <br />
