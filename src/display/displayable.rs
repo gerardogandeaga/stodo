@@ -11,9 +11,19 @@ pub trait Displayable {
 
 impl Displayable for StodoDir {
     fn to_displayable(&self) -> String {
-        format!("{}", Colour::Cyan
-            .paint(basename(self.in_path()))
-            .to_string())
+
+        if self.empty() {
+            format!("{}", Colour::Red
+                .paint(
+                    format!("{}: nothing found.", basename(self.in_path()))
+                )
+                .to_string())
+        }
+        else {
+            format!("{}", Colour::Cyan
+                .paint(basename(self.in_path()))
+                .to_string())
+        }
     }
 }
 

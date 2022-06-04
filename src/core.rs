@@ -5,6 +5,7 @@ pub mod file;
 pub mod dir;
 pub mod entry;
 
+use std::fs;
 use std::path::{PathBuf, Path};
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
@@ -42,7 +43,9 @@ impl StodoWalker {
     /// Filters and groups paths if required. Only groups files paths that are under the same directory.
     /// Multiple declarations of the same directory will be processed twice.
     fn process_path_entries(paths: &Vec<String>) -> Vec<StodoPathEntry> {
-        let paths: Vec<PathBuf> = paths.iter().map(|path| PathBuf::from(path)).collect();
+        let paths: Vec<PathBuf> = paths.iter().map(|path| {
+            fs::canonicalize(path).unwrap().to_path_buf()
+        }).collect();
 
         let mut entries_with_files: Vec<StodoPathEntry> = vec![];
         let mut entries_only_dirs: Vec<StodoPathEntry> = vec![];
@@ -54,6 +57,7 @@ impl StodoWalker {
             else 
             if path.is_file() {
                 let mut directory: PathBuf = PathBuf::from(path);
+                println!("{}", path.display());
                 directory.pop();
                 assert!(directory.is_dir(), "Parent must be a directory!");
                 let mut dir_entry: StodoPathEntry = StodoPathEntry::new(directory, order);
@@ -83,13 +87,23 @@ impl StodoWalker {
             
             if let Some(dir) =  tree.node_weight(node) {
                 // remove the edge between the parent and the current node
-                if is_leaf && dir.is_empty() {
+                if is_leaf && dir.empty() {
                     // this walker should only need to iterate over a single edge
                     let mut walker = tree.neighbors_directed(node, EdgeDirection::Incoming).detach();
                     let mut removed_edge = false;
                     while let Some(incoming_edge) = walker.next_edge(tree) { 
                         assert_eq!(removed_edge, false, "This node seems to have more than a single parent...");
                         tree.remove_edge(incoming_edge); 
+                        removed_edge = true;
+                    }
+                }
+                else
+                if !dir.empty() {
+                    let mut walker = tree.neighbors_directed(node, EdgeDirection::Incoming).detach();
+                    let mut removed_edge = false;
+                    while let Some(parent) = walker.next_node(tree) { 
+                        assert_eq!(removed_edge, false, "This node seems to have more than a single parent...");
+                        tree.node_weight_mut(parent).unwrap().set_not_empty();
                         removed_edge = true;
                     }
                 }
@@ -120,6 +134,7 @@ impl StodoWalker {
         let mut stodo_tree: StodoTree = Graph::new();
         let mut parent_stack: Vec<NodeIndex> = vec![];
         let mut depth_stack: Vec<usize> = vec![];
+
         for res in directory_walker {
             match res {
                 Ok(entry) => {
@@ -150,6 +165,7 @@ impl StodoWalker {
                     if path.is_file() {
                         let path_buf: PathBuf = path.to_path_buf();
 
+                        // skip file if we are looking for specific files that arent being looked for
                         if specific_files && !path_entry.has_file(&path_buf) {
                             continue;
                         }
@@ -173,7 +189,6 @@ impl StodoWalker {
     }
 
     fn directory_walker(&self, dir: &PathBuf, is_recursive: bool) -> Walk {
-        println!("use ignore? {}", !self.search_all);
         // TODO: get the ignore walker working
         WalkBuilder::new(PathBuf::from(dir))
             .sort_by_file_path(Path::cmp)
@@ -244,3 +259,11 @@ impl PartialOrd for StodoPathEntry {
 }
 
 impl Eq for StodoPathEntry {}
+
+
+#[cfg(test)]
+mod tests {
+
+    // #[test]
+    // fn 
+}

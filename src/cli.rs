@@ -4,6 +4,7 @@ pub mod stodo_args;
 pub mod term;
 
 use {clap_args::clap_args, stodo_args::CliConfig};
+use super::display::{StodoOutput, LineToken};
 
 pub fn run_config() -> CliConfig {
     let clap_args = clap_args();
@@ -29,12 +30,10 @@ use self::term::TermData;
 /// TODO: Change the cursor movement to only between stodo entries
 
 #[allow(dead_code)]
-pub fn run<W>(writer: &mut W, writable: String) -> Result<()> 
+pub fn run<W>(writer: &mut W, stodo_output: StodoOutput) -> Result<()> 
     where
         W: Write, 
 {
-    let mut term_data = term::TermData::new(writable);
-
     execute!(writer, terminal::EnterAlternateScreen)?;
     terminal::enable_raw_mode()?;
 
@@ -42,13 +41,16 @@ pub fn run<W>(writer: &mut W, writable: String) -> Result<()>
         writer, 
         ResetColor,
         terminal::Clear(terminal::ClearType::All),
-        // cursor::Show,
         cursor::Hide,
         cursor::EnableBlinking,
         cursor::MoveTo(0,0)
     )?;
 
-    let (_, mut terminal_height) = terminal::size().unwrap();
+    let (terminal_width, mut terminal_height) = terminal::size().unwrap();
+
+    // init the data for rendering
+    let mut term_data = term::TermData::new(stodo_output, (terminal_height, terminal_width));
+
     render(writer, &term_data)?;
 
     writer.flush()?;
@@ -59,33 +61,25 @@ pub fn run<W>(writer: &mut W, writable: String) -> Result<()>
             let (_, cursor_y) = cursor::position().unwrap();
 
             match event::read().unwrap() {
-                Event::Resize(_, h) => {
+                Event::Resize(w, h) => {
                     terminal_height = h;
+                    term_data.resize_window((h, w));
                     render(writer, &term_data)?;
                 },
                 Event::Key(KeyEvent {code: KeyCode::Up, .. }) => {
-                    if term_data.point_to_next() {
-                        if cursor_y > 0 {
-                            queue!(writer, cursor::MoveUp(1))?;
-                        }
-                        else {
-                            term_data.shift_top_up();
-                            queue!(writer, cursor::MoveTo(0, 0))?;
-                        }
-                        
-
+                    // TODO: Handle the case when shifting to a stodo that is out of range from the current screen
+                    let shift: usize = term_data.point_to_prev();
+                    
+                    if shift > 0 {
+                        queue!(writer, cursor::MoveTo(0, term_data.cursor_window_position()))?;
                         render(writer, &term_data)?;
                     }
                 },
                 Event::Key(KeyEvent {code: KeyCode::Down, .. }) => {
-                    if term_data.point_to_prev() {
-                        if cursor_y < terminal_height - 1 {
-                            queue!(writer, cursor::MoveDown(1))?;
-                        }
-                        else {
-                            term_data.shift_top_down();
-                            queue!(writer, cursor::MoveTo(0, terminal_height - 1))?;
-                        }
+                    let shift: usize = term_data.point_to_next();
+
+                    if shift > 0 {
+                        queue!(writer, cursor::MoveTo(0, term_data.cursor_window_position()))?;
                         render(writer, &term_data)?;
                     }
                 },
@@ -109,14 +103,30 @@ pub fn run<W>(writer: &mut W, writable: String) -> Result<()>
 }
 
 fn render<W: Write>(w: &mut W, term_data: &TermData) -> Result<()> {
-    let (_, height) = terminal::size().unwrap();
+    let (width, height) = terminal::size().unwrap();
     let (_, y) = cursor::position().unwrap();
 
     queue!(w, terminal::Clear(terminal::ClearType::All), cursor::MoveTo(0,0))?;
 
-    term_data.buffer_window(height as usize)
+    term_data.buffer_window()
+        .iter()
         .enumerate()
-        .for_each(|(i, line)| {
+        .for_each(|(i, (t, line))| {
+            // render a division line
+            if matches!(t, LineToken::Div) {
+                // ─
+                let s = format!(" {}", line);
+                let ss = s.trim_end();
+                let g_width = ss.len();
+                queue!(
+                    w, 
+                    style::Print(ss), 
+                    style::Print(format!("{:─>width$}", "", width = width as usize - g_width)), 
+                    cursor::MoveToNextLine(1)
+                ).ok();
+            }
+            else
+            // render the text line
             if i == y as usize {
                 let s = format!(">{}", line);
                 queue!(

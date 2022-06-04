@@ -9,6 +9,7 @@ TODO: only keep the relative path of the directories below
 pub struct StodoDir {
     path: PathBuf,          // path that the user entered, could be relative, could be absolute
     stodos: Vec<StodoFile>, // todos in this directory
+    is_empty: bool,         // If the stodo dir does not have any stodos in the current or sub directories
     is_root: bool
 }
 
@@ -19,6 +20,7 @@ impl StodoDir {
         Self {
             path,
             stodos: vec![],
+            is_empty: true,
             is_root
         }
     }
@@ -34,11 +36,19 @@ impl StodoDir {
         &self.path
     }
 
-    pub fn is_empty(&self) -> bool {
+    pub fn set_not_empty(&mut self) {
+        self.is_empty = false;
+    }
+
+    pub fn empty_stodos(&self) -> bool {
         self.stodos.is_empty()
     }
 
-    pub fn is_root(&self) -> bool {
+    pub fn empty(&self) -> bool {
+        self.is_empty
+    }
+
+    pub fn root(&self) -> bool {
         self.is_root
     }
 
@@ -47,6 +57,7 @@ impl StodoDir {
         if let Some(file) = StodoFile::from_file(path) {
             if !file.is_empty() {
                 self.stodos.push(file);
+                self.set_not_empty();
             }
         }
     }
@@ -55,6 +66,7 @@ impl StodoDir {
     pub fn force_add_file(&mut self, path: PathBuf) {
         if let Some(file) = StodoFile::from_file(path) {
             self.stodos.push(file);
+            self.set_not_empty();
         }
     }
 }

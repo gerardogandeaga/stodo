@@ -1,55 +1,46 @@
-use super::builder::LineToken;
+use super::LineToken;
 
 const GUTTER_STRING_INIT_CAP: usize = 256;
 
-pub struct Gutter;
+pub struct Gutter {
+    string: String,
+    width: usize,
+}
 
 impl Gutter {
 
     pub fn new() -> Self {
-        Gutter { }
+        Gutter { 
+            string: String::with_capacity(GUTTER_STRING_INIT_CAP),
+            width: 0,
+        }
     }
 
-    pub fn compile(&self, line_tokens: &Vec<LineToken>) -> String {
-        let mut gutter_string: String = String::with_capacity(GUTTER_STRING_INIT_CAP);
-        let width: usize = self.gutter_width(line_tokens) as usize;
+    pub fn compile(&mut self, line_tokens: &Vec<LineToken>) -> String {
+        self.set_gutter_width(line_tokens);
 
         line_tokens.iter()
             .for_each(|x| 
-                Gutter::append_to_gutter_string(
-                    &mut gutter_string, 
-                    width, 
-                    x
-                )
+                self.append_to_gutter(x)
             );
 
-        gutter_string
+        String::from(&self.string)
     }
 
-    fn append_to_gutter_string(
-        gutter_string: &mut String, 
-        gutter_width: usize,
+    fn append_to_gutter(
+        &mut self,
         line_token: &LineToken) {
 
-        let mut gutter_append = |s: &str| {
-            gutter_string.push_str( 
-                format!("{: >width$}", s, width = gutter_width)
-                    .as_str()
-            );
-            gutter_string.push_str("│ ") ; // │
-            gutter_string.push('\n');
-        };
-
         match line_token {
-            LineToken::Stodo(line) => gutter_append(line.to_string().as_str()),
-            LineToken::RootDir => gutter_append("─"),
+            LineToken::Stodo(line) => self.append(line.to_string().as_str()),
+            LineToken::Div => self.append_div(),
             _ => {
-                gutter_append("");
+                self.append("");
             }
         }
     }
 
-    fn gutter_width(&self, line_tokens: &Vec<LineToken>) -> u8 {
+    fn set_gutter_width(&mut self, line_tokens: &Vec<LineToken>) {
         // let n_digits = |x: u32| (u32::log10(x) + 1) as u8;
         let mut max_line_number: u32 = 0;
 
@@ -74,7 +65,25 @@ impl Gutter {
             }
         }
         
-        d
+        self.width = d as usize;
+    }
+
+    fn append_div(&mut self) {
+        self.string.push_str( 
+            format!("{: >width$}", "", width = self.width)
+                .as_str()
+        );
+        self.string.push_str("├ ") ; // │
+        self.string.push('\n');
+    }
+
+    fn append(&mut self, s: &str) {
+        self.string.push_str( 
+            format!("{: >width$}", s, width = self.width)
+                .as_str()
+        );
+        self.string.push_str("│ ") ; // │
+        self.string.push('\n');
     }
 
 }

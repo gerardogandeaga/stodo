@@ -3,7 +3,7 @@ use petgraph::graph::{NodeIndex};
 use petgraph::visit::{Dfs, NodeIndexable};
 use crate::core::{dir::StodoDir, StodoForest};
 
-use super::builder::LineToken;
+use super::LineToken;
 use super::displayable::Displayable;
 
 pub struct Forest {
@@ -88,7 +88,7 @@ impl Forest {
                 self.add_line_token(LineToken::Dir);
 
                 // make a directory branch
-                if !stodo_dir.is_empty() {
+                if !stodo_dir.empty_stodos() {
                     self.add_file_leaf(stodo_dir, &mut dir_branch);
                 }
 
@@ -111,7 +111,7 @@ impl Forest {
 
             // add empty line token for the extra spacing
             if i < n_trees - 1{
-                self.add_line_token(LineToken::Empty);
+                self.add_line_token(LineToken::Div);
             }
         }
     
