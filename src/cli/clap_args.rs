@@ -3,7 +3,7 @@ use clap::{Arg, ArgMatches, Command};
 pub fn clap_args() -> ArgMatches {
     // TODO: Add a max recursion depth, use the .gitignore (deafult = true), view hidden files (default = false)
     Command::new("stodo")
-        .version("0.1.0")
+        .version("0.2.0")
         .author("gerardo gandeaga")
         .about("TODO cli manager")
         .arg(Arg::new("paths")

@@ -57,7 +57,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-![STodo screenshot](./images/example.png)
+![STodo screenshot](./images/example-2.png)
 
 STodo is a nifty tool that analyzes files for `TODO`
  and `FIXME` annotations in your project code. The program displays the resulting annotations in an interactive vim-like terminal screen. STodo (optionally recursively) searches specified files and directories passed through command line arguments. By default, STodo respects .gitignore files within a directory structure to filter out unnecessary files.
