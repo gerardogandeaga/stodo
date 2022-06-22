@@ -3,13 +3,13 @@ mod core;
 mod display;
 
 use std::io;
-use crossterm::{Result};
+use crossterm::Result;
 
 fn main() -> Result<()> {
     // STODO ----------------------------------------------------------------------------------------
     // get program configuration
     let stodo_config = cli::run_config();
-
+    
     if !stodo_config.runnable() {
         return Ok(());
     }

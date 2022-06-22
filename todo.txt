@@ -2,4 +2,4 @@
 * Do further testing and polishing
 * Add a "flatten" cli argument which flattens the stodo tree
 * Add a "no stylize" option to render completely plain text output
-* Possibly add mutlithreaded file traversal support for large directories
+* Possibly add mutlithreaded file traversal support for large directories (have a thread pool that collects files to analyze)
