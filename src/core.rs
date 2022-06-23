@@ -4,6 +4,7 @@
 pub mod file;
 pub mod dir;
 pub mod entry;
+pub mod worker_pool;
 
 use std::fs;
 use std::path::{PathBuf, Path};

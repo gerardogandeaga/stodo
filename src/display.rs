@@ -1,7 +1,8 @@
 #[allow(dead_code)]
 
+mod viewable;
 mod gutter;
-mod forest;
+mod forest_view;
 pub mod displayable;
 pub mod builder;
 

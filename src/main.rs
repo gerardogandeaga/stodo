@@ -5,6 +5,9 @@ mod display;
 use std::io;
 use crossterm::Result;
 
+
+use std::time;
+
 fn main() -> Result<()> {
     // STODO ----------------------------------------------------------------------------------------
     // get program configuration
@@ -13,11 +16,14 @@ fn main() -> Result<()> {
     if !stodo_config.runnable() {
         return Ok(());
     }
-
-    // generate the stodo trees
+    
+    let timer = time::Instant::now();
+    // generate the stodo forest
     let stodo_forest: core::StodoForest = core::StodoWalker::new(&stodo_config).build_stodo_forest();
+    println!("Time to create forest: {}ms - {}s", timer.elapsed().as_millis(), timer.elapsed().as_secs_f32()) ;
+    
     // build the display trees
-    let stodo_output = display::builder::DisplayForestBuilder::compile(&stodo_forest);
+    let stodo_output = display::builder::DisplayBuilder::compile(&stodo_forest);
     // display the trees
     let mut stdout = io::stdout();
     cli::run(&mut stdout, stodo_output)?;

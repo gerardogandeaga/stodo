@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 use super::StodoFile;
+use std::hash::{Hash};
 
 /*
 Represents a directory with files that have valid todo strings in them
@@ -69,4 +70,25 @@ impl StodoDir {
             self.set_not_empty();
         }
     }
+}
+
+impl Hash for StodoDir {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.path.hash(state)
+    }
+}
+
+impl PartialEq for StodoDir {
+    fn eq(&self, other: &Self) -> bool {
+        self.path == other.path
+    }
+}
+
+// impl PartialOrd for StodoDir {
+//     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+//         Some(PathBuf::cmp(&self.path, &other.path))
+//     }
+// }
+
+impl Eq for StodoDir {
 }
